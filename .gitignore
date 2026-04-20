@@ -1,0 +1,104 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+node_modules
+**/node_modules
+package-lock.json
+**/package-lock.json
+/.pnp
+.pnp.js
+.cache
+/.cargo
+
+# testing
+/coverage
+
+# production
+/build
+quadratic-shared/**/*.js
+
+# misc
+.DS_Store
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.old
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
+venv/*
+*.pyc
+.idea
+
+# Generated Rust files
+**/target
+poc/**/target/
+quadratic-core/tmp.txt
+quadratic-files/storage
+quadratic-multiplayer/target/
+quadratic-rust-shared/target/
+quadratic-cloud-controller/target/
+quadratic-rust-shared/src/auto_gen_path.rs
+
+# Generated JS files
+quadratic-api/node_modules/
+quadratic-api/.env
+quadratic-api/.env.local
+quadratic-api/dist
+
+# Code Coverage
+quadratic-connection/coverage
+quadratic-core/coverage
+quadratic-files/coverage
+quadratic-multiplayer/coverage
+
+# Python Deployment files
+quadratic-kernels/python-wasm/dist/
+quadratic-client/public/*.whl
+
+# Pyodide public folder
+quadratic-client/public/pyodide
+
+# Docker Data Volumes
+docker/localstack/data
+docker/mysql/data
+docker/postgres/data
+docker/redis/data
+docker/static/html
+docker/file-storage
+docker/synced-data
+docker/postgres-connection/data
+docker/mysql-connection/data
+docker/snowflake-connection/data
+docker/mssql-connection/data
+docker/cockroachdb-connection/data
+docker/mariadb-connection/data
+docker/bigquery-connection/data
+docker/ssh-postgres-connection/data
+docker/ssh-mysql-connection/data
+docker/ssh-mssql-connection/data
+
+# Playwright
+test/e2e/test-results
+test/e2e/playwright-report
+test/e2e/blob-report
+test/e2e/playwright/.cache/
+
+# JMeter
+jmeter.log
+
+~$*
+
+# ai
+/finetuning
+
+# rust-dev
+dev-rust-state.json
+**/dev-rust-state.json

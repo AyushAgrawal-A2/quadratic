@@ -1,0 +1,68 @@
+[package]
+name = "quadratic-files"
+version = "0.25.0"
+edition = "2024"
+authors = ["David DiMaria <david.dimaria@quadratichq.com>"]
+
+[dependencies]
+axum = { version = "0.8.1", features = ["macros"] }
+axum-extra = { version = "0.10.0", features = ["typed-header"] }
+bytes = "1.6.1"
+chrono = { version = "=0.4.39", features = ["serde"] }
+dotenv = "0.15.0"
+envy = "0.4.2"
+futures = "0.3.29"
+futures-util = { version = "0.3.29", default-features = false, features = [
+    "sink",
+    "std",
+] }
+headers = "0.4.0"
+http = "1.1.0"
+jsonwebtoken = "9.2.0"
+quadratic-core = { path = "../quadratic-core", default-features = false, features = [
+    "console_error_panic_hook",
+    "js",
+] }
+quadratic-rust-shared = { path = "../quadratic-rust-shared", features = [
+    "arrow",
+    "auth",
+    "cache",
+    "environment",
+    "object_store",
+    "protobuf",
+    "pubsub",
+    "quadratic-api",
+    "quadratic-database",
+    "storage",
+    "synced",
+] }
+rayon = "1.8.0"
+reqwest = { version = "0.11.22", default-features = false, features = ["json", "rustls-tls-native-roots", "serde_json"] }
+serde = { version = "1.0.193", features = ["derive"] }
+serde_json = "1.0.108"
+sha2 = "0.10"
+strum = "0.27.1"
+strum_macros = "0.27.1"
+thiserror = "2.0.12"
+tokio = { version = "1.44.2", features = ["full"] }
+tokio-util = { version = "0.7.11", features = ["rt"] }
+tower = { version = "0.5.2", features = ["util"] }
+tower-http = { version = "0.6.2", features = [
+    "cors",
+    "fs",
+    "trace",
+    "validate-request",
+] }
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter", "json"] }
+uuid = { version = "1.6.1", features = ["serde", "v4"] }
+
+[dev-dependencies]
+fake = { version = "4.0.0", features = ["derive"] }
+httpmock = "0.8"
+serial_test = "3.2.0"
+
+[features]
+default = ["files"]
+multiplayer = []
+files = []

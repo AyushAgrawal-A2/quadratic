@@ -1,0 +1,26 @@
+{
+  "cSpell.words": [
+    "bigdecimal",
+    "Bincode",
+    "CRPXNLSKVLJFHH",
+    "Datelike",
+    "dateparser",
+    "datetime",
+    "dbgjs",
+    "ddimaria",
+    "finitize",
+    "indexmap",
+    "Itertools",
+    "milli",
+    "minmax",
+    "Rects",
+    "rposition",
+    "Strftime",
+    "Timelike",
+    "undoable"
+  ],
+  "lldb.displayFormat": "auto",
+  "lldb.showDisassembly": "never",
+  "lldb.dereferencePointers": true,
+  "lldb.consoleMode": "commands"
+}

@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.generic.json",
+  "compilerOptions": {
+    "lib": ["ES2024", "dom", "dom.Iterable", "webworker"],
+    "types": ["vite/client"]
+  },
+  "include": ["src", "public/pyright.worker.js"],
+  "exclude": ["node_modules/*", "src/grid/controller/runners/*", "quadratic-core/*", "quadratic-api/*"]
+}

@@ -1,0 +1,127 @@
+// Protocol Buffers for Transactions
+//
+// It's important to not change existing fields once a versioned
+// (including their order and tags).  A best practice is to append
+// new fields to the end of the message or create a new message or
+// version the messages.
+//
+// For Rust, protobuf is generated using the `protoc` compiler with the
+// `protoc-gen-rust` plugin, which happens automatically when this file
+// is changed.
+//
+// Quadratic Client requires the protobuf code to be generated.
+//
+// ```bash
+// cd quadratic-client
+// npm run gen:proto
+// ```
+
+syntax = "proto3";
+
+package quadratic;
+
+import "google/protobuf/timestamp.proto";
+
+service CoreCloud {
+  rpc Startup(StartupCoreCloud) returns (StartupCoreCloudAck);
+  rpc Transaction(SendTransaction) returns (TransactionAck);
+  rpc Shutdown(ShutdownCoreCloud) returns (ShutdownCoreCloudAck);
+}
+
+message StartupCoreCloud {
+  string type = 1;
+  string file_id = 2;
+}
+
+message StartupCoreCloudAck {
+  string type = 1;
+  string file_id = 2;
+}
+
+message ShutdownCoreCloud {
+  string type = 1;
+  string file_id = 2;
+}
+
+message ShutdownCoreCloudAck {
+  string type = 1;
+  string file_id = 2;
+}
+
+
+message SendTransaction {
+  string type = 1;
+  string id = 2;
+  string session_id = 3;
+  string file_id = 4;
+  bytes operations = 5;
+}
+
+message TransactionAck {
+  string type = 1;
+  string id = 2;
+  string session_id = 3;
+  string file_id = 4;
+  bytes operations = 5;
+}
+
+message BinaryTransaction {
+  string type = 1;
+  string id = 2;
+  string file_id = 4;
+  string session_id = 3;
+  bytes operations = 5;
+}
+
+message BinaryTransactions {
+  string type = 1;
+  repeated BinaryTransaction transactions = 2;
+}
+
+message ReceiveBinaryTransaction {
+  string type = 1;
+  BinaryTransaction transaction = 2;
+}
+
+message SendGetTransactions {
+  string type = 1;
+  string session_id = 2;
+  string file_id = 3;
+  uint64 min_sequence_num = 4;
+}
+
+message SendTransactions {
+  string type = 1;
+  string session_id = 2;
+  string file_id = 3;
+  uint64 min_sequence_num = 4;
+}
+
+message ReceiveTransaction {
+  string type = 1;
+  string id = 2;
+  string file_id = 3;
+  uint64 sequence_num = 4;
+  bytes operations = 5;
+}
+
+message ReceiveTransactions {
+  string type = 1;
+  repeated ReceiveTransaction transactions = 2;
+}
+
+message ScheduledTask {
+  string type = 1;
+  string id = 2;
+  string file_id = 3;
+  bytes operations = 4;
+  google.protobuf.Timestamp start_datetime = 5;
+  optional google.protobuf.Timestamp end_datetime = 6;
+  uint64 frequency_minutes = 7;
+}
+
+message Error {
+  string type = 1;
+  string error = 2;
+  string error_level = 3;
+}

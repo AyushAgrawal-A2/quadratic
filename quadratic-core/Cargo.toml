@@ -1,0 +1,204 @@
+[package]
+name = "quadratic-core"
+version = "0.25.0"
+authors = ["Andrew Farkas <andrew.farkas@quadratic.to>"]
+edition = "2024"
+description = "Infinite data grid with Python, JavaScript, and SQL built-in"
+repository = "https://github.com/quadratichq/quadratic"
+license-file = "LICENSE"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "docgen"
+path = "src/bin/docgen.rs"
+
+[[bin]]
+name = "export_types"
+path = "src/bin/export_types.rs"
+
+[[bin]]
+name = "generate_blank_current_file"
+path = "src/bin/generate_blank_current_file.rs"
+
+[[bin]]
+name = "convert_grid_to_json"
+path = "src/bin/convert_grid_to_json.rs"
+
+[[bin]]
+name = "upgrade_file"
+path = "src/bin/upgrade_file.rs"
+
+[[bin]]
+name = "export_formulas"
+path = "src/bin/export_formulas.rs"
+
+[features]
+default = ["console_error_panic_hook", "js", "dbgjs"]
+# "js" feature is disabled for testing (particularly WASI benchmarks)
+js = [
+  "js-sys",
+  "serde-wasm-bindgen",
+  "ts-rs",
+  "wasm-bindgen",
+  "wasm-bindgen-futures",
+]
+show-operations = []
+show-first-sheet-operations = []
+dbgjs = []
+function-timer = ["function-timer/enabled"]
+
+[dependencies]
+anyhow = "1.0"
+async-trait = "0.1.63"
+futures = "0.3.25"
+itertools = "0.14.0"
+# getrandom requires wasm feature flags for wasm32-unknown-unknown.
+# These aren't used directly but enable the feature on transitive deps.
+getrandom = { version = "0.3.1", features = ["wasm_js"] }
+getrandom_02 = { package = "getrandom", version = "0.2", features = ["js"] }
+getrandom_04 = { package = "getrandom", version = "0.4", features = ["wasm_js"] }
+rand = "0.9"
+regex = "1.7"
+rstar = "0.12.2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_repr = "0.1"
+smallvec = { version = "1.11.0", features = ["serde", "union"] }
+strum = { version = "0.27.1", features = ["derive"] }
+strum_macros = "0.27.1"
+tabled = { version = "0.14.0", features = ["color"] }
+pollster = "0.4.0"
+unicode-case-mapping = "1.0.0"
+# Pinned to 1.17.0 for compatibility with ts-rs and other deps; avoid changing without checking the dependency tree.
+uuid = { version = "=1.17.0", features = ["serde", "v4", "rng-rand"] }
+chrono = { version = "=0.4.39", features = ["serde", "wasmbind"] }
+
+# The `console_error_panic_hook` crate provides better debugging of panics by
+# logging them with `console.error`. This is great for development, but requires
+# all the `std::fmt` and `std::panicking` infrastructure, so isn't great for
+# code size when deploying.
+console_error_panic_hook = { version = "0.1.7", optional = true }
+
+# JS dependencies that break the WASI build (which we need for benchmarks)
+
+base64 = "0.22.1"
+zstd = "0.13.3"
+js-sys = { version = "0.3.60", optional = true }
+serde-wasm-bindgen = { version = "0.6.0", optional = true }
+ts-rs = { git = "https://github.com/quadratichq/ts-rs/", branch = "update-v10", optional = true, features = [
+  "uuid-impl",
+  "smallvec-impl",
+  "no-serde-warnings",
+] }
+wasm-bindgen = { version = "0.2.100", optional = true }
+wasm-bindgen-futures = { version = "0.4.33", optional = true }
+lexicon_fractional_index = "0.0.4-a1"
+csv = "1.3.0"
+indexmap = { version = "2.8.0", features = ["serde"] }
+thiserror = "2.0.12"
+lazy_static = "1.4.0"
+parquet = { version = "54.2.1", default-features = false, features = [
+  "arrow",
+  "arrow-array",
+  "flate2",
+  "snap",
+] }
+bytes = "1.5.0"
+arrow-array = "54.2.1"
+arrow-schema = "54.2.1"
+arrow-buffer = "54.2.1"
+arrow-data = "54.2.1"
+half = "2.4.0"
+# pull from git@github.com:ddimaria/calamine.git until the branch is accepted at calamine
+calamine = { git = "https://github.com/ddimaria/calamine.git", rev = "b875cba", features = [
+  "dates",
+] }
+bincode = { version = "2.0.0", features = ["serde"] }
+flate2 = "1.0.30"
+serde_with = "3.8.1"
+dateparser = "0.2.1"
+fancy-regex = "0.14.0"
+function-timer = { path = "../quadratic-rust-shared/proc_macros/function-timer" }
+quadratic-rust-shared = { path = "../quadratic-rust-shared", default-features = false, features = [
+  "protobuf",
+] }
+prost = { version = "0.13.5", default-features = false }
+encoding_rs_io = "0.1.7"
+rust_decimal = "1.37.2"
+statrs = "0.18"
+roxmltree = "0.20"
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+rust_xlsxwriter = { version = "0.89.1", features = ["wasm", "chrono"] }
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+rust_xlsxwriter = { version = "0.89.1", features = ["chrono"] }
+quadratic-rust-shared = { path = "../quadratic-rust-shared", features = [
+  "benchmark",
+] }
+ureq = { version = "2.9", features = ["json"] }
+
+[dev-dependencies]
+criterion = { version = "0.5", default-features = false, features = [
+  "html_reports",
+] }
+memory-stats = "1.2.0"
+
+[target.'cfg(not(target_family = "wasm"))'.dev-dependencies]
+proptest = "1.2.0"
+proptest-derive = "0.5.0"
+
+[[bench]]
+name = "grid_benchmark"
+harness = false
+
+[[bench]]
+name = "import_excel"
+harness = false
+required-features = ["function-timer"]
+
+[[bench]]
+name = "import_csv"
+harness = false
+required-features = ["function-timer"]
+
+[[bench]]
+name = "autocomplete_formula"
+harness = false
+required-features = ["function-timer"]
+
+[[bench]]
+name = "clipboard_formula"
+harness = false
+required-features = ["function-timer"]
+
+[profile.bench]
+debug = true
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ['-Os', '-g'] # TODO: -g seems to fix the name mangling problem
+
+[package.metadata.wasm-pack.profile.release.wasm-bindgen]
+debug-js-glue = false
+demangle-name-section = true
+dwarf-debug-info = false
+
+[package.metadata.wasm-pack.profile.dev]
+wasm-opt = false
+
+[package.metadata.wasm-pack.profile.dev.wasm-bindgen]
+debug-js-glue = true
+demangle-name-section = true
+dwarf-debug-info = false
+
+[package.metadata.wasm-pack.profile.profiling]
+wasm-opt = ['-O0', '-g']
+
+[package.metadata.wasm-pack.profile.profiling.wasm-bindgen]
+debug-js-glue = false
+demangle-name-section = true
+dwarf-debug-info = true

@@ -1,0 +1,170 @@
+import { apiClient } from '@/shared/api/apiClient';
+import { showUpgradeDialogAtom } from '@/shared/atom/showUpgradeDialogAtom';
+import { updateTeamBilling } from '@/shared/atom/teamBillingAtom';
+import { BillingPlans } from '@/shared/components/billing/BillingPlans';
+import { WarningIcon } from '@/shared/components/Icons';
+import { ROUTES } from '@/shared/constants/routes';
+import { Alert, AlertTitle } from '@/shared/shadcn/ui/alert';
+import { Button } from '@/shared/shadcn/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/shadcn/ui/dialog';
+import { cn } from '@/shared/shadcn/utils';
+import { trackEvent } from '@/shared/utils/analyticsEvents';
+import { useAtom } from 'jotai';
+import { useEffect, useMemo } from 'react';
+import { useNavigate, useNavigation } from 'react-router';
+
+interface UpgradeDialogProps {
+  teamUuid: string;
+  canManageBilling: boolean;
+}
+
+export function UpgradeDialog({ teamUuid, canManageBilling }: UpgradeDialogProps) {
+  const [state, setState] = useAtom(showUpgradeDialogAtom);
+  const navigate = useNavigate();
+  const navigation = useNavigation();
+
+  // Track when the dialog opens so we know where it came from
+  useEffect(() => {
+    if (state.open) {
+      trackEvent('[UpgradeDialog].opened', { eventSource: state.eventSource, suggestion: state.suggestion?.type });
+    }
+    if (state.eventSource === 'fileLimitReached') {
+      trackEvent('[Billing].files.exceededBillingLimit', { location: 'UpgradeDialog' });
+    }
+  }, [state]);
+
+  // Background sync billing data with Stripe when dialog opens
+  useEffect(() => {
+    if (!state.open) return;
+
+    let isCancelled = false;
+
+    const syncBilling = async () => {
+      try {
+        const freshData = await apiClient.teams.get(teamUuid, { updateBilling: true });
+        if (!isCancelled && freshData.billing) {
+          updateTeamBilling({
+            isOnPaidPlan: freshData.billing.status === 'ACTIVE',
+            planType: freshData.billing.planType ?? 'FREE',
+            cancelAtPeriodEnd: freshData.billing.cancelAtPeriodEnd ?? false,
+            currentPeriodEnd: freshData.billing.currentPeriodEnd ?? null,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to sync billing data:', error);
+      }
+    };
+
+    syncBilling();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [state.open, teamUuid]);
+
+  // Determine what to show based on the suggestion
+  const isEnableOverage = state.open && state.suggestion?.type === 'enableOverage';
+  const targetPlan = state.open && state.suggestion?.type === 'upgrade' ? state.suggestion.targetPlan : null;
+
+  const upgradeTitle = useMemo(() => {
+    if (isEnableOverage) {
+      return canManageBilling ? 'Enable on-demand AI usage' : 'Team monthly AI allowance exceeded';
+    }
+    if (targetPlan === 'BUSINESS') {
+      return 'Upgrade to Business';
+    }
+    switch (state.eventSource) {
+      case 'fileLimitReached':
+        return 'Upgrade to Pro for unlimited file editing';
+      default:
+        return 'Upgrade to Pro';
+    }
+  }, [state.eventSource, isEnableOverage, targetPlan, canManageBilling]);
+
+  const reasonText = useMemo(() => {
+    if (isEnableOverage) {
+      if (canManageBilling) {
+        return 'Your team has exceeded the monthly AI allowance. Enable on-demand usage to continue using AI features.';
+      }
+      return 'Your team has exceeded the monthly AI allowance. Ask a team editor or owner to enable on-demand usage.';
+    }
+    if (targetPlan === 'BUSINESS') {
+      return 'Your Pro plan AI allowance has been exceeded. Upgrade to Business for more AI usage and on-demand billing.';
+    }
+    switch (state.eventSource) {
+      case 'fileLimitReached':
+        return 'Some of your files require an upgrade to edit due to the free plan limit.';
+      case 'AIUsageExceeded':
+        return 'Your free tier AI messages have been used up for this month.';
+      default:
+        return undefined;
+    }
+  }, [state.eventSource, isEnableOverage, targetPlan, canManageBilling]);
+
+  const handleGoToTeamSettings = () => {
+    setState({ open: false, eventSource: null });
+    trackEvent('[UpgradeDialog].enableOverageClicked');
+    navigate(ROUTES.TEAM_SETTINGS(teamUuid));
+  };
+
+  return (
+    <Dialog open={state.open} onOpenChange={() => setState({ open: false, eventSource: null })}>
+      <DialogContent
+        className={cn(
+          isEnableOverage ? 'max-w-lg' : 'max-w-5xl',
+          navigation.state !== 'idle' && 'pointer-events-none opacity-50'
+        )}
+        data-testid="upgrade-to-pro-dialog"
+      >
+        <DialogHeader>
+          <DialogTitle>{upgradeTitle}</DialogTitle>
+          <DialogDescription>
+            {isEnableOverage
+              ? canManageBilling
+                ? 'On-demand usage allows your team to continue using AI beyond the monthly allowance.'
+                : 'You can view your team’s AI usage in team settings.'
+              : 'Be sure to unlock all the individual and team features of Quadratic.'}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="relative flex flex-col gap-2">
+          {reasonText && (
+            <Alert variant="warning">
+              <WarningIcon />
+              <AlertTitle className="mb-0">{reasonText}</AlertTitle>
+            </Alert>
+          )}
+          {isEnableOverage ? (
+            <div className="flex flex-col gap-4 pt-2">
+              {canManageBilling ? (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Go to your team settings to enable on-demand AI usage. This allows your team to continue using AI
+                    features beyond the included allowance, with usage billed at the end of each month.
+                  </p>
+                  <Button onClick={handleGoToTeamSettings} className="w-full">
+                    Go to team settings
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Ask a team editor or owner to enable on-demand usage in team settings, or view current usage there.
+                  </p>
+                  <Button onClick={handleGoToTeamSettings} className="w-full" variant="secondary">
+                    View usage
+                  </Button>
+                </>
+              )}
+            </div>
+          ) : (
+            <BillingPlans
+              teamUuid={teamUuid}
+              canManageBilling={canManageBilling}
+              eventSource={`UpgradeDialog-${state.eventSource}`}
+            />
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -1,0 +1,109 @@
+import { debugFlag } from '@/app/debugFlags/debugFlags';
+import { authClient } from '@/auth/auth';
+import { apiClient } from '@/shared/api/apiClient';
+import { captureException } from '@sentry/react';
+import type z from 'zod';
+
+export class ApiError extends Error {
+  status: number;
+  details?: string;
+  method?: string;
+
+  constructor(message: string, status: number, method?: string, details?: string) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status; // Fetch response status code
+    this.method = method; // Fetch request method
+    this.details = details; // Details useful for debugging
+  }
+}
+
+/**
+ * Error thrown when the schema configuration is missing or invalid.
+ * This indicates a programming error (e.g., missing schema in ApiSchemas),
+ * not a runtime API failure.
+ */
+export class SchemaConfigurationError extends TypeError {
+  path: string;
+  method?: string;
+
+  constructor(message: string, path: string, method?: string) {
+    super(message);
+    this.name = 'SchemaConfigurationError';
+    this.path = path;
+    this.method = method;
+  }
+}
+
+export async function fetchFromApi<T>(
+  path: string,
+  init: RequestInit,
+  schema: z.Schema<T>
+): Promise<z.infer<typeof schema>> {
+  // Validate that schema is defined and has safeParse method before proceeding
+  if (!schema || typeof schema.safeParse !== 'function') {
+    const schemaType = schema === undefined ? 'undefined' : schema === null ? 'null' : typeof schema;
+    const errorMessage =
+      `Schema configuration error for API call: ${init.method} ${path}. ` +
+      `Expected a Zod schema but received ${schemaType}. ` +
+      `This likely indicates a missing or incorrect schema definition in ApiSchemas.`;
+    console.error(errorMessage, { path, method: init.method, schemaType });
+    const error = new SchemaConfigurationError(errorMessage, path, init.method);
+    captureException(error);
+    throw error;
+  }
+
+  const debugTime = `API ${init.method} ${path}`;
+  if (debugFlag('debugShowAPITimes')) console.time(debugTime);
+
+  // We'll automatically inject additional headers to the request, starting with auth
+  const isAuthenticated = await authClient.isAuthenticated();
+  const skipRedirect = window.location.pathname.includes('/login-result');
+  const token = isAuthenticated ? await authClient.getTokenOrRedirect(skipRedirect) : '';
+  const headers = new Headers(init.headers);
+  if (isAuthenticated) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+  // And if we're submitting `FormData`, let the browser set the content-type automatically
+  // This allows files to upload properly. Otherwise, we assume it's JSON.
+  if (!(init.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+  }
+  // And finally, we'll set the headers back on the request
+  init.headers = headers;
+
+  // Make API call
+  const url = apiClient.getApiUrl() + path;
+  const response = await fetch(url, init);
+
+  // Handle if the response is not JSON
+  const json = await response.json().catch((error) => {
+    captureException(error);
+    throw new ApiError('An unknown error occurred: response is not JSON.', response.status, init.method);
+  });
+
+  // Handle response if a server error is returned
+  if (!response.ok) {
+    // TODO: ensure API only ever returns uniform error response, e.g. `json.errors` or `json.error.message`
+    let details = 'No detailed error message provided';
+    if (json?.error?.message) {
+      details = json.error.message;
+    } else if (json?.errors) {
+      details = JSON.stringify(json.errors);
+    }
+    throw new ApiError(`Failed to fetch ${url}`, response.status, init.method, details);
+  }
+
+  // Compare the response to the expected schema
+  const result = schema.safeParse(json);
+
+  if (!result.success) {
+    console.error(`Zod schema validation failed at: ${path}`, JSON.stringify(result.error, null, 2));
+
+    const details = JSON.stringify(result.error);
+    throw new ApiError('Unexpected response schema', response.status, init.method, details);
+  }
+
+  if (debugFlag('debugShowAPITimes')) console.timeEnd(debugTime);
+  return result.data;
+}

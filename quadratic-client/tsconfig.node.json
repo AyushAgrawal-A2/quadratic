@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "module": "ES2024",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true
+  }
+}

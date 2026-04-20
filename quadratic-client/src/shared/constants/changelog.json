@@ -1,0 +1,186 @@
+[
+  {
+    "version": "0.25.0",
+    "date": "2026-02-26",
+    "changes": [
+      "Business plan",
+      "STOCKHISTORY formula",
+      "Google Analytics OAuth",
+      "Excel rich text import/export",
+      "AI model upgrade: Sonnet 4.6",
+      "Connections UI improvements",
+      "Bug fixes"
+    ],
+    "details": "<h2>Business plan</h2>\n<p>We've introduced a new Business plan tier with enhanced features for teams. The billing UI has been redesigned with clearer plan comparisons and improved subscription management:</p>\n<ul>\n<li>New Business tier with expanded capabilities</li>\n<li>Redesigned billing cards and plan selection</li>\n<li>Educational users now have no file limits</li>\n<li>Subscription reactivation support</li>\n</ul>\n\n<p></p>\n\n<h2>STOCKHISTORY formula</h2>\n<p>Introducing the STOCKHISTORY formula for fetching historical stock price data directly in your spreadsheet. Query stock prices by ticker symbol and date range to build financial models and track market performance:</p>\n<ul>\n<li>Fetch historical open, high, low, close, and volume data</li>\n<li>Specify date ranges for custom time periods</li>\n<li>Powered by Intrinio for reliable financial data</li>\n</ul>\n\n<p></p>\n\n<h2>Google Analytics OAuth</h2>\n<p>Google Analytics connections now use a streamlined OAuth flow. Connect your Google Analytics account with proper token refresh handling for more reliable data syncing.</p>\n\n<h2>Excel rich text import/export</h2>\n<p>Excel imports and exports now preserve rich text formatting including bold, italic, underline, and strikethrough. Color tints are also supported, making it easier to work with formatted Excel files.</p>\n\n<h2>AI model upgrade: Sonnet 4.6</h2>\n<p>The default thinking model has been upgraded to Claude Sonnet 4.6, bringing improved reasoning capabilities. AI models now display helpful descriptions so you can choose the best model for your task:</p>\n<ul>\n<li>Sonnet 4.6: Excellent balance of speed and intelligence</li>\n<li>Opus 4.6: Most capable model for complex reasoning</li>\n<li>Haiku 4.5: Fast and efficient for simple tasks</li>\n</ul>\n\n<p></p>\n\n<h2>Connections UI improvements</h2>\n<p>The in-app connections experience has been improved with a cleaner UI, better form layouts, and inline help text. Connection setup is now more intuitive with field-level guidance.</p>\n\n<h2>Bug fixes</h2>\n<p>Various bug fixes and stability improvements including:</p>\n<ul>\n<li>Added error boundaries to prevent cascading crashes</li>\n<li>Fixed OpenAI API bugs and improved error handling</li>\n<li>Fixed merge cell client warnings</li>\n<li>Fixed onboarding login and signup issues</li>\n<li>Fixed AI conditional formatting Zod schema issues</li>\n<li>Fixed command palette bugs</li>\n<li>Improved AI message validation before sending to providers</li>\n</ul>"
+  },
+  {
+    "version": "0.24.0",
+    "date": "2026-02-17",
+    "changes": [
+      "Merge cells",
+      "Conditional formatting",
+      "Complex formula support",
+      "Plaid connection improvements",
+      "Connections UI and IP allow-list",
+      "Faster paste with code cells",
+      "Stripe subscription fix",
+      "Rust 1.91",
+      "Bug fixes"
+    ],
+    "details": "<h2>Merge cells</h2>\n<p>You can now merge cells in Quadratic. Select multiple cells and merge them into a single cell to create cleaner layouts and organize your data more effectively. Merge cells work seamlessly with existing features:</p>\n<ul>\n<li>Insert and delete rows/columns correctly update merged regions</li>\n<li>Merged cells move properly when moved alone or with other content</li>\n<li>Full support for conditional formatting and table sorting with merged cells</li>\n</ul>\n\n<p></p>\n\n<h2>Conditional formatting</h2>\n<p>Conditional formatting lets you automatically style cells based on their values. Highlight important data, visualize trends, and spot outliers at a glance:</p>\n<ul>\n<li>Apply rules based on cell values, text, or custom formulas</li>\n<li>Color scales and gradients to visualize numeric ranges</li>\n<li>Works with tables, merged cells, and sorted data</li>\n<li>AI can create and manage conditional formatting rules for you</li>\n</ul>\n\n<p></p>\n\n<h2>Complex formula support</h2>\n<p>The formula parser now correctly handles deeply nested formulas, including complex nested IF statements that previously failed with a \"formula too complex\" error. You can use more elaborate formulas without hitting parsing limits.</p>\n\n<h2>Plaid connection improvements</h2>\n<p>Several enhancements to the Plaid connection experience:</p>\n<ul>\n<li>Extended data window to 2 years when linking accounts</li>\n<li>Additional tables: balances and liabilities with date support</li>\n<li>Flattened timeseries data for easier analysis</li>\n<li>AI receives Plaid-specific context when you ask about a Plaid connection's schema</li>\n<li>Separate options and flows for Banks, Brokerages, and Credit Cards</li>\n</ul>\n\n<p></p>\n\n<h2>Connections UI and IP allow-list</h2>\n<p>Connections list and sidebar have been improved with clearer layout and language. The connections sidebar now correctly shows the IP allow-list section when setting up database connections, so you can copy Quadratic's IPs to add to your network allow-list.</p>\n\n<h2>Faster paste with code cells</h2>\n<p>Pasting many code cells at once is now faster. The compute queue is pre-populated during paste, avoiding an expensive full-queue reorder and making bulk paste of code cells more responsive.</p>\n\n<h2>Stripe subscription fix</h2>\n<p>Fixed an issue where checkout could create duplicate Stripe subscriptions. The checkout endpoint now prevents duplicate subscriptions from being created in the first place.</p>\n\n<h2>Rust 1.91</h2>\n<p>Quadratic's Rust codebase has been updated to use Rust 1.91.0.</p>\n\n<h2>Bug fixes</h2>\n<p>Various bug fixes and stability improvements including:</p>\n<ul>\n<li>Fixed \"Format cells if...\" not properly scrolling into view</li>\n<li>Fixed COL/ROW not retriggering and Cmd+Enter not executing formulas in some cases</li>\n<li>Fixed AI pane showing when it shouldn't</li>\n<li>Improved formula performance with large numbers of formulas</li>\n<li>One failing connection no longer blocks other connections from processing</li>\n<li>Fixed Docker WASM builds (getrandom/uuid compatibility)</li>\n<li>Conditional formatting now updates correctly when sorting tables</li>\n</ul>"
+  },
+  {
+    "version": "0.23.11",
+    "date": "2026-02-11",
+    "changes": [
+      "AI model upgrade: Opus 4.6",
+      "Move multiple tables",
+      "Excel named ranges support",
+      "AI error handling improvements",
+      "Bug fixes"
+    ],
+    "details": "<h2>AI model upgrade: Opus 4.6</h2>\n<p>The Auto AI model setting now uses Opus 4.6, delivering improved reasoning and code generation capabilities for a better AI-assisted spreadsheet experience.</p>\n\n<h2>Move multiple tables</h2>\n<p>You can now select and move multiple tables at once. This makes reorganizing your spreadsheet layout faster and easier, with proper handling of overlapping table positions.</p>\n\n<h2>Excel named ranges support</h2>\n<p>Excel imports now properly decode named ranges to A1 notation, improving compatibility when importing complex Excel files that use named ranges.</p>\n\n<h2>AI error handling improvements</h2>\n<p>Several improvements to AI reliability and error handling:</p>\n<ul>\n<li>Buffered AI responses for smoother streaming and reduced parsing errors</li>\n<li>Clear error message and new chat button when context length is exceeded</li>\n<li>Dedicated error messaging for out-of-memory situations</li>\n<li>Fixed AI suggestion crashes and safeguarded the formatting bar</li>\n<li>Fixed AI response parsing errors</li>\n</ul>\n\n<p></p>\n\n<h2>Bug fixes</h2>\n<p>Various bug fixes and stability improvements including:</p>\n<ul>\n<li>Fixed floating table headers showing improperly on copy as PNG</li>\n<li>Fixed share dialog triggering a page reload</li>\n<li>Fixed scheduled task error handling</li>\n<li>Improved performance for very large tables by optimizing content cache</li>\n<li>Fixed sheet-not-found errors during navigation</li>\n<li>Fixed N+1 query issue in Connections API calls</li>\n<li>Fixed display buffer inconsistencies with column data</li>\n</ul>"
+  },
+  {
+    "version": "0.23.10",
+    "date": "2026-02-05",
+    "changes": [
+      "Agent mode",
+      "Move files between teams",
+      "Excel font size support",
+      "Connections improvements",
+      "Bug fixes"
+    ],
+    "details": "<h2>Agent mode</h2>\n<p>Introducing Agent mode—a new way to interact with AI in Quadratic. Agent mode provides an enhanced, focused experience for working with your data:</p>\n<ul>\n<li>Expanded chat interface with contextual suggestions</li>\n<li>Smart file import suggestions when dragging files</li>\n<li>Improved connection schema browsing</li>\n<li>Toggle between Agent mode and standard mode from the top bar</li>\n</ul>\n\n<p></p>\n\n<h2>Move files between teams</h2>\n<p>You can now move files between your personal space and team folders directly from within the spreadsheet. Access this feature from the File menu or the file name dropdown in the top bar.</p>\n\n<h2>Excel font size support</h2>\n<p>We've upgraded our Excel import/export capabilities to include font size support. Font sizes from Excel files are now preserved on import, and your font sizes will be exported when saving to Excel format.</p>\n\n<h2>Connections improvements</h2>\n<p>Several improvements to the connections experience:</p>\n<ul>\n<li>Simplified workflow for creating new connections</li>\n<li>Focus automatically shifts to chat when adding a connection</li>\n<li>Added \"Learn more\" documentation links for connection setup</li>\n<li>Improved visibility and UI for connection options</li>\n</ul>\n\n<p></p>\n\n<h2>Bug fixes</h2>\n<p>Various bug fixes and improvements including:</p>\n<ul>\n<li>Fixed hyperlink editing when the inline editor is open</li>\n<li>Fixed a filter bug in cell type menu</li>\n<li>Fixed alignment and styling issues</li>\n</ul>"
+  },
+  {
+    "version": "0.23.9",
+    "date": "2026-01-30",
+    "changes": ["Feature walkthrough for new users", "Free team file limits", "AI thinking improvements", "Bug fixes"],
+    "details": "<h2>Feature walkthrough for new users</h2>\n<p>New users are now greeted with an interactive walkthrough that highlights key Quadratic features:</p>\n<ul>\n<li>The infinite canvas with pinch-to-zoom navigation</li>\n<li>External data connections for live dashboards</li>\n<li>Scheduled tasks for automatic updates</li>\n<li>AI-powered assistance for building formulas and workflows</li>\n</ul>\n<p>The walkthrough can be skipped at any time and is disabled on mobile devices.</p>\n\n<h2>Free team file limits</h2>\n<p>Free teams can now edit up to 5 files. Files beyond this limit become read-only with an option to upgrade. A banner is displayed when the limit is exceeded, and individual files show an \"Upgrade to edit\" prompt.</p>\n\n<h2>AI thinking improvements</h2>\n<p>We've simplified the AI thinking UI to provide a cleaner, more streamlined experience when the AI is reasoning through your requests.</p>\n\n<h2>Bug fixes</h2>\n<p>Various bug fixes and improvements including:</p>\n<ul>\n<li>Fixed an issue where inactive or archived connections were still being processed</li>\n<li>Improved build performance for faster deployments</li>\n</ul>"
+  },
+  {
+    "version": "0.23.8",
+    "date": "2026-01-28",
+    "changes": [
+      "Streamlined onboarding",
+      "Synced connections improvements",
+      "JavaScript autocomplete enhancement",
+      "Bug fixes"
+    ],
+    "details": "<h2>Streamlined onboarding</h2>\n<p>New users are now taken directly to create their first file after completing onboarding, making it faster to get started with Quadratic.</p>\n\n<h2>Synced connections improvements</h2>\n<p>We've made several improvements to synced connections:</p>\n<ul>\n<li>Added semantic layers support for Google Analytics, Mixpanel, and Plaid connections</li>\n<li>Improved sync status display in the code editor</li>\n<li>Simplified sync state UI with better error messaging</li>\n<li>Better handling of synced connection errors</li>\n</ul>\n\n<p></p>\n\n<h2>JavaScript autocomplete enhancement</h2>\n<p>Improved JavaScript autocomplete so that <code>(await q.cells())</code> now properly supports dot notation for method chaining.</p>\n\n<h2>Bug fixes</h2>\n<p>Various bug fixes and improvements including:</p>\n<ul>\n<li>Fixed hyperlink popup positioning issues</li>\n<li>Fixed template display bug and user filter in dashboard</li>\n<li>Fixed bug with improperly deleting tables after spills</li>\n<li>Fixed favicons in QA environment</li>\n<li>Updated Plaid connection branding from Coinbase to Fidelity</li>\n</ul>"
+  },
+  {
+    "version": "0.23.7",
+    "date": "2026-01-26",
+    "changes": ["AI connection bug fixes", "File checkpoint improvements", "Internal improvements"],
+    "details": "<h2>AI connection bug fixes</h2>\n<p>Fixed a bug where starting a new file with an AI connection would fail to properly initialize. We also improved AI stability by filtering out empty tool calls that could cause errors.</p>\n\n<h2>File checkpoint improvements</h2>\n<p>Fixed an issue where file checkpoint update timestamps were not being properly recorded, ensuring more accurate file history tracking.</p>\n\n<h2>Internal improvements</h2>\n<p>Various internal improvements including:</p>\n<ul>\n<li>Fixed scheduled tasks links</li>\n<li>Improved CI reliability with retry logic</li>\n<li>Enhanced preview deployment workflows</li>\n</ul>"
+  },
+  {
+    "version": "0.23.5",
+    "date": "2026-01-16",
+    "changes": ["Connections list UI improvements", "AI chat improvements", "Rich text fixes", "Bug fixes"],
+    "details": "<h2>Connections list UI improvements</h2>\n<p>The connections list has been redesigned with improved styling, better responsiveness, and a more intuitive layout for managing your data connections.</p>\n\n<h2>AI chat improvements</h2>\n<p>AI thinking text now remains visible in the chat history, making it easier to follow the AI's reasoning process. We've also improved how formatting tool cards display when working with multiple cell selections.</p>\n\n<h2>Rich text fixes</h2>\n<p>We've resolved several issues with rich text formatting including:</p>\n<ul>\n<li>Fixed width problems with multiple rich-text spans</li>\n<li>Fixed italic clipping on first letters</li>\n<li>Fixed strikethrough and underline rendering</li>\n<li>Improved cell-level formatting synchronization with the inline editor</li>\n</ul>\n\n<p></p>\n\n<h2>Bug fixes</h2>\n<p>Numerous bug fixes and stability improvements including:</p>\n<ul>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/3854\" target=\"_blank\" rel=\"noopener noreferrer\">Fixed hyperlinks remaining active over clipped areas</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/3853\" target=\"_blank\" rel=\"noopener noreferrer\">Prevented deletion of tables being referenced by other cells</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/3837\" target=\"_blank\" rel=\"noopener noreferrer\">Fixed single-cell code cell formatting issues</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/3831\" target=\"_blank\" rel=\"noopener noreferrer\">Fixed file history UI navigation</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/3852\" target=\"_blank\" rel=\"noopener noreferrer\">Improved backend robustness when generating file checkpoints</a></li>\n</ul>"
+  },
+  {
+    "version": "0.23.4",
+    "date": "2026-01-19",
+    "changes": ["OpenAI bug fixes"],
+    "details": null
+  },
+  {
+    "version": "0.23.3",
+    "date": "2026-01-13",
+    "changes": [
+      "Rich text and hyperlinks",
+      "Additional formulas",
+      "Google Analytics connection",
+      "Performance improvements",
+      "Bug fixes"
+    ],
+    "details": "<h2>Rich text and hyperlinks</h2>\n<p>Cells now support rich text formatting with clickable hyperlinks. You can add, edit, and style links directly within cells for better navigation and interactivity in your spreadsheets.</p>\n\n<h2>Additional formulas</h2>\n<p>We've added many new formulas including financial functions (COUP*, IRR, NPV variants), date/time functions, and various utility formulas to expand spreadsheet capabilities.</p>\n\n<h2>Google Analytics connection</h2>\n<p>Connect directly to Google Analytics to pull your analytics data into Quadratic. Query multiple streams and tables, with full support for synced data and logging.</p>\n\n<h2>Performance improvements</h2>\n<p>Significant performance optimizations including improved bounds calculation, faster viewport-based hash rendering, and optimized fill operations for smoother editing of large spreadsheets.</p>\n\n<h2>Bug fixes</h2>\n<p>Numerous bug fixes and stability improvements including:</p>\n<ul>\n<li>Fixed formula autocomplete behavior</li>\n<li>Fixed sheet name trimming issues</li>\n<li>Fixed table number editing</li>\n<li>Improved text alignment and centering</li>\n<li>Fixed glyph sizing and spacing</li>\n<li>Improved file history with sequence numbers</li>\n</ul>"
+  },
+  {
+    "version": "0.21.10",
+    "date": "2024-12-20",
+    "changes": ["Added in-app changelog viewer", "Improved settings menu navigation"],
+    "details": null
+  },
+  {
+    "version": "0.21.3",
+    "date": "2025-11-21",
+    "changes": ["@ mentions in AI chat", "AI chat schema viewer", "AI generated Formula ranges", "Bug fixes"],
+    "details": "<h2>@ mentions in AI chat</h2>\n<p>Type @ to mention specific items in the sheet. This helps the AI understand your intent and references.</p>\n\n<h2>Schema viewer</h2>\n<p>We've improved the schema viewing experience, adding it additionally to the AI chat any time a connection is opened. Browse your database schema while you seamlessly chat with your data.</p>\n\n<h2>Formula ranges</h2>\n<p>Instead of writing Formulas one cell at a time, AI can now insert ranges of Formulas to the sheet, enabling a much more efficient formula writing experience.</p>\n\n<h2>Bug fixes</h2>\n<p>We shipped numerous bug fixes and stability improvements in October.</p>\n<ul>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/3553\" target=\"_blank\" rel=\"noopener noreferrer\">Column grid lines missing</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/3550\" target=\"_blank\" rel=\"noopener noreferrer\">Disable negative grid headings</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/3520\" target=\"_blank\" rel=\"noopener noreferrer\">Limit sheet name length</a></li>\n</ul>\n<p>View the complete list of features and bug fixes from October on GitHub <a href=\"https://github.com/quadratichq/quadratic/pulls?q=is%3Apr%20state%3Aclosed%20closed%3A2025-10-01..2025-10-31\" target=\"_blank\" rel=\"noopener noreferrer\">here</a>.</p>"
+  },
+  {
+    "version": "0.21.0",
+    "date": "2025-10-29",
+    "changes": ["AI Chat", "AI code editor improvements", "AI model support", "Numerous minor improvements and fixes"],
+    "details": "<h2>AI Chat</h2>\n<p>AI Chat lets you chat directly with your data and code in Quadratic spreadsheets. Creating business analytics just got super easy. With Quadratic AI, you can build charts and find insights from your data faster than ever.</p>\n\n<h2>AI code editor improvements</h2>\n<p>With the AI Assistant in the code editor, you can chat directly with your code. Write and edit Python, SQL, JavaScript, or formulas.</p>\n\n<h2>AI supports various models and scenarios</h2>\n<p>Quadratic AI supports a variety of models, including OpenAI and Anthropic models. You can use Anthropic models either directly from their cloud or via the models hosted on a Quadratic instance on AWS Bedrock.</p>\n<p>You can also <a href=\"https://quadratichq.com/contact\" target=\"_blank\" rel=\"noopener noreferrer\">contact us</a> for help with custom models in self-hosted Quadratic instances.</p>\n\n<h2>Numerous minor improvements and fixes</h2>\n<ul>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/2000\" target=\"_blank\" rel=\"noopener noreferrer\">Dashboard design tweaks for readability</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/2004\" target=\"_blank\" rel=\"noopener noreferrer\">Improved new file dialogue</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/2034\" target=\"_blank\" rel=\"noopener noreferrer\">Design tweak for AI fix button</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/2037\" target=\"_blank\" rel=\"noopener noreferrer\">Hyperlink fix with colons</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/2036\" target=\"_blank\" rel=\"noopener noreferrer\">Error triangle disappearing immediately when fixed</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/2041\" target=\"_blank\" rel=\"noopener noreferrer\">Data validation centering fix</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/2046\" target=\"_blank\" rel=\"noopener noreferrer\">Dark mode fixes</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/2049\" target=\"_blank\" rel=\"noopener noreferrer\">Drag and move code cells duplication fix</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/2053\" target=\"_blank\" rel=\"noopener noreferrer\">Memory leak fix for better performance</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/2055\" target=\"_blank\" rel=\"noopener noreferrer\">Unfollowing from grid fix</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/2057\" target=\"_blank\" rel=\"noopener noreferrer\">Custom dates bug fix</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/2058\" target=\"_blank\" rel=\"noopener noreferrer\">Plotly chart speed up via CDN</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/2083\" target=\"_blank\" rel=\"noopener noreferrer\">Request proxy fix</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/2081\" target=\"_blank\" rel=\"noopener noreferrer\">Code cell artifact bug fix</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/2101\" target=\"_blank\" rel=\"noopener noreferrer\">Send new users straight to a file</a></li>\n</ul>"
+  },
+  {
+    "version": "0.20.8",
+    "date": "2025-11-07",
+    "changes": ["New AI Models", "Semantic layer", "SQL in left chat", "Bug fixes"],
+    "details": "<h2>New AI Models</h2>\n<p><strong>Default:</strong> On Default, you'll notice a faster, more powerful experience. We are continually shipping improvements to our Default model to ensure a healthy balance of cost and performance for new users.</p>\n<p><strong>Max:</strong> On Max, we continuously upgrade to the model that performs best on our evaluations. The latest release from Anthropic, Claude Sonnet 4.5, delivers performance comparable to GPT-5 but with significantly faster speed. As a result, we've switched the model on Max from GPT-5 to Claude Sonnet 4.5 for our power users to get the best possible experience.</p>\n\n<h2>Semantic layer</h2>\n<p>Have specific quirks about your database you want AI to know about? Anything you enter in the semantic layer field of your connection details will be included in the AI's context.</p>\n\n<h2>SQL in left chat</h2>\n<p>You can now query your connections directly from the left-side AI chat. Previously, this could only be done from the code editor chat, with limited scope. Now, you can run fully agentic SQL queries from the left chat to query your database and immediately start analysis.</p>\n<p>We will also be following up soon with lots of improvements to this experience, including better ways to view schema, narrow chat context, and more.</p>\n\n<h2>Bug fixes</h2>\n<p>We shipped numerous bug fixes and stability improvements in September. Some of these fixes include:</p>\n<ul>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/3480\" target=\"_blank\" rel=\"noopener noreferrer\">Remove letters from autocomplete</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/3479\" target=\"_blank\" rel=\"noopener noreferrer\">Copy as PNG closes context menu</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/3477\" target=\"_blank\" rel=\"noopener noreferrer\">Calendar properly showing for datetimes</a></li>\n</ul>\n<p>View the complete list of features and bug fixes shipped from September on GitHub <a href=\"https://github.com/quadratichq/quadratic/pulls?q=is%3Apr+is%3Aclosed\" target=\"_blank\" rel=\"noopener noreferrer\">here</a>.</p>"
+  },
+  {
+    "version": "0.20.0",
+    "date": "2025-09-25",
+    "changes": [
+      "Theming",
+      "Clickable links",
+      "Insert/delete columns and rows",
+      "Smart autocomplete",
+      "Date & time formulas",
+      "Numerous minor improvements and fixes"
+    ],
+    "details": "<h2>Theming</h2>\n<p>Theming in Quadratic allows you to utilize the world's first dark mode spreadsheet and pick from a palette of pre-set accent colors.</p>\n\n<h2>Clickable links</h2>\n<p>You can now create clickable URLs in your spreadsheets that, when clicked, will open in a new browser tab.</p>\n\n<h2>Insert/delete columns and rows</h2>\n<p>You can now insert and delete single or multiple columns and rows.</p>\n\n<h2>Smart autocomplete</h2>\n<p>Smart autocomplete automatically suggests autocomplete options, using the content from adjacent cells to make recommendations. To fill in the recommended text, press the tab button.</p>\n\n<h2>Date & time formulas</h2>\n<p>We've added support for date and time formulas, allowing you to easily create and manipulate dates and times.</p>\n\n<h2>Numerous minor improvements and fixes</h2>\n<ul>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/1883\" target=\"_blank\" rel=\"noopener noreferrer\">Reduce percentage decimal precision</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/1885\" target=\"_blank\" rel=\"noopener noreferrer\">Changing sheet saves input</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/1942\" target=\"_blank\" rel=\"noopener noreferrer\">Ctrl + ; inserts current time</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/1940\" target=\"_blank\" rel=\"noopener noreferrer\">Focus returns to grid when pressing esc on menus</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/1939\" target=\"_blank\" rel=\"noopener noreferrer\">Fix MATCH formula</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/1931\" target=\"_blank\" rel=\"noopener noreferrer\">Fix sheet drag locations in bottom bar</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/1928\" target=\"_blank\" rel=\"noopener noreferrer\">Fix auto-resize row bug and offsets</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/1925\" target=\"_blank\" rel=\"noopener noreferrer\">Change default AI model and tune temperature</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/1919\" target=\"_blank\" rel=\"noopener noreferrer\">Chart resizing fixes</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/1911\" target=\"_blank\" rel=\"noopener noreferrer\">Border menu improvements</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/1904\" target=\"_blank\" rel=\"noopener noreferrer\">Update code cells on undo/redo</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/1948\" target=\"_blank\" rel=\"noopener noreferrer\">Fix border clearing</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/1952\" target=\"_blank\" rel=\"noopener noreferrer\">New design for multiplayer avatars</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/1953\" target=\"_blank\" rel=\"noopener noreferrer\">Fix sheets stuck in pan mode</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/1958\" target=\"_blank\" rel=\"noopener noreferrer\">Keep go-to menu open when pressing Shift</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/1966\" target=\"_blank\" rel=\"noopener noreferrer\">Fix border formatting</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/1969\" target=\"_blank\" rel=\"noopener noreferrer\">Prevent paste on middle click on Linux</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/1977\" target=\"_blank\" rel=\"noopener noreferrer\">CSV delimiter improvements</a></li>\n<li><a href=\"https://github.com/quadratichq/quadratic/pull/1980\" target=\"_blank\" rel=\"noopener noreferrer\">Show logged-in user context when you don't have permissions on a file</a></li>\n</ul>"
+  },
+  {
+    "version": "0.17.0",
+    "date": "2025-09-02",
+    "changes": [
+      "New tools and context for AI",
+      "Broader Excel import formatting support",
+      "SQL schema filtering",
+      "Bug fixes"
+    ],
+    "details": "<h2>New tools and context for AI</h2>\n<p>We added many new tools for AI to access, including:</p>\n<ul>\n<li>Insert/delete rows/columns</li>\n<li>Table manipulation</li>\n<li>Validations</li>\n<li>Many more</li>\n</ul>\n<p>AI should now have nearly complete access to common spreadsheet features. We also significantly improved AI context, with simpler and more comprehensive instructions.</p>\n<p>Read about the full scope of our recent AI changes <a href=\"https://www.quadratichq.com/blog/ai-agents-for-spreadsheets\" target=\"_blank\" rel=\"noopener noreferrer\">here in our Blog</a>.</p>\n\n<h2>Broader Excel import formatting support</h2>\n<p>Until now, Excel imports only added data and formula to the sheet. Now we also support formatting on imports, including:</p>\n<ul>\n<li>Font: bold, italic, underline, strikethrough, color</li>\n<li>Background/fill color</li>\n<li>Alignment: horizontal, vertical, wrap text, shrink to fit</li>\n<li>Date, time, datetime</li>\n<li>Number: commas, decimals, scientific, percentage, currency, exponent</li>\n<li>Border: border style, border color</li>\n<li>Layout: column width, row height</li>\n</ul>\n\n<p></p>\n\n<h2>SQL schema filtering</h2>\n<p>One of our most active business users requested SQL schema filtering. We built and shipped the feature same-day. Have a feature you want built? Please <a href=\"https://quadratichq.com/contact\" target=\"_blank\" rel=\"noopener noreferrer\">let us know</a>.</p>\n\n<h2>Bug fixes</h2>\n<p>We shipped a few minor bug fixes and stability improvements in August.</p>\n<p>View the complete list of features and bug fixes from August on GitHub <a href=\"https://github.com/quadratichq/quadratic/issues?q=is%3Apr%20state%3Aclosed%20closed%3A2025-08-01..2025-08-31\" target=\"_blank\" rel=\"noopener noreferrer\">here</a>.</p>"
+  },
+  {
+    "version": "0.16.0",
+    "date": "2025-08-07",
+    "changes": [
+      "JavaScript language support",
+      "Cell ranges to Python",
+      "Major selection improvements",
+      "Lots of fixed papercuts"
+    ],
+    "details": null
+  },
+  {
+    "version": "0.15.0",
+    "date": "2025-07-22",
+    "changes": ["Inline formulas", "Drag to move cells", "Auto-resize columns", "Education program"],
+    "details": null
+  },
+  {
+    "version": "0.14.0",
+    "date": "2025-07-17",
+    "changes": ["Relative references", "Web workers", "Editor improvements"],
+    "details": null
+  },
+  {
+    "version": "0.13.0",
+    "date": "2025-07-03",
+    "changes": ["Multiplayer", "Python improvements", "Various features and bug fixes"],
+    "details": null
+  },
+  {
+    "version": "0.12.0",
+    "date": "2025-06-28",
+    "changes": ["Charts", "Gallery", "Numerous optimizations"],
+    "details": null
+  }
+]

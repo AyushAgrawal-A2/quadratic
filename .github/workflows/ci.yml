@@ -1,0 +1,680 @@
+name: CI
+
+# Use runs on `ubuntu-latest-8-cores`. All of our self hosted runners use this tag.
+# Our runners pick up jobs first, and if all our runners are being used or are down
+# it will automatically back up to using GitHub hosted runners.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  test_rust:
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - core
+          - multiplayer
+          - files
+          - connection
+          - rust-shared
+          - cloud-controller
+          - cloud-worker
+          - core-cloud
+        include:
+          - package: core
+            runner: blacksmith-2vcpu-ubuntu-2404
+            test_command: "npm run test"
+          - package: multiplayer
+            runner: blacksmith-2vcpu-ubuntu-2404
+            test_command: "npm run docker:test"
+          - package: files
+            runner: blacksmith-2vcpu-ubuntu-2404
+            test_command: "npm run docker:test"
+          - package: connection
+            runner: blacksmith-4vcpu-ubuntu-2404
+            test_command: "npm run docker:test"
+          - package: rust-shared
+            runner: blacksmith-4vcpu-ubuntu-2404
+            test_command: "npm run docker:test"
+          - package: cloud-controller
+            runner: blacksmith-4vcpu-ubuntu-2404
+            test_command: "npm run docker:test"
+          - package: core-cloud
+            runner: blacksmith-4vcpu-ubuntu-2404
+            test_command: "npm run docker:test"
+          - package: cloud-worker
+            runner: blacksmith-4vcpu-ubuntu-2404
+            test_command: "npm run docker:test"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: useblacksmith/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Set up Rust
+        run: rustup toolchain install
+
+      - name: Cache Protoc
+        id: cache-protoc
+        uses: useblacksmith/cache@v5
+        with:
+          path: ~/.local/protoc
+          key: protoc-25.0-linux-x86_64-v1
+
+      - name: Install Protoc
+        run: |
+          if [ -f "$HOME/.local/protoc/bin/protoc" ]; then
+            echo "Using cached protoc"
+          else
+            PROTOC_VERSION="25.0"
+            mkdir -p "$HOME/.local/protoc"
+            for i in {1..5}; do
+              curl -fsSL -o protoc.zip \
+                "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip" && break
+              echo "Attempt $i failed, retrying in 10s..."
+              sleep 10
+            done
+            unzip -o protoc.zip -d "$HOME/.local/protoc"
+            rm protoc.zip
+          fi
+          echo "$HOME/.local/protoc/bin" >> $GITHUB_PATH
+
+      - name: Verify Protoc
+        run: protoc --version
+
+      - name: Rust Cache
+        uses: useblacksmith/rust-cache@v3
+
+      - name: Install grcov
+        uses: taiki-e/install-action@v2
+        with:
+          tool: grcov
+
+      - name: Install llvm-tools-preview
+        run: if ! which llvm-tools-preview; then rustup component add llvm-tools-preview; fi
+
+      - name: Install pkg-config, OpenSSL, and CA certificates
+        run: |
+          for i in 1 2 3; do sudo apt-get update && break || sleep 5; done
+          sudo apt-get install -y pkg-config libssl-dev ca-certificates
+          sudo update-ca-certificates
+
+      - name: Install Deno for core-cloud and cloud-worker
+        if: matrix.package == 'core-cloud' || matrix.package == 'cloud-worker'
+        run: |
+          curl -fsSL https://deno.land/install.sh | sh
+          echo "$HOME/.deno/bin" >> $GITHUB_PATH
+
+      - name: Verify Deno for core-cloud and cloud-worker
+        if: matrix.package == 'core-cloud' || matrix.package == 'cloud-worker'
+        run: |
+          export PATH="$HOME/.deno/bin:$PATH"
+          deno --version
+
+      - name: Setup Python for core-cloud tests
+        if: matrix.package == 'core-cloud'
+        uses: useblacksmith/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install Python development headers for core-cloud
+        if: matrix.package == 'core-cloud'
+        run: |
+          for i in 1 2 3; do sudo apt-get update && break || sleep 5; done
+          sudo apt-get install -y python3-dev libpython3.12-dev
+
+      - name: Install Python packages for core-cloud tests
+        if: matrix.package == 'core-cloud'
+        run: |
+          # Install uv for fast package installation
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          export PATH="$HOME/.local/bin:$PATH"
+          # Install Python packages needed for tests
+          uv pip install --system \
+            pandas \
+            numpy \
+            matplotlib \
+            seaborn \
+            scipy \
+            requests \
+            openpyxl \
+            xlsxwriter \
+            plotly \
+            scikit-learn \
+            statsmodels \
+            nltk \
+            regex \
+            faker \
+            yfinance
+
+      - name: Test quadratic-${{ matrix.package }}
+        id: test
+        env:
+          LLVM_PROFILE_FILE: grcov-%p-%m.profraw
+          RUSTFLAGS: -Cinstrument-coverage
+          RUSTC_BOOTSTRAP: 1
+          CARGO_BUILD_JOBS: 4
+          BIGQUERY_CREDENTIALS: "${{ secrets.BIGQUERY_CREDENTIALS }}"
+          PLAID_CREDENTIALS: "${{ secrets.PLAID_CREDENTIALS }}"
+          INTRINIO_API_KEY: "${{ secrets.INTRINIO_API_KEY }}"
+          SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
+          SSL_CERT_DIR: /etc/ssl/certs
+          DATABASE_DSN: "postgresql://postgres:postgres@0.0.0.0:5432/postgres"
+        run: |
+          if [ "${{ matrix.package }}" = "core-cloud" ] || [ "${{ matrix.package }}" = "cloud-worker" ]; then
+            export PATH="$HOME/.deno/bin:$PATH"
+          fi
+          cd quadratic-${{ matrix.package }}
+          ${{ matrix.test_command }}
+
+      - name: Generate coverage for quadratic-${{ matrix.package }}
+        if: always() && steps.test.outcome == 'success'
+        env:
+          RUSTC_BOOTSTRAP: 1
+        run: |
+          cd quadratic-${{ matrix.package }}
+          grcov $(find . ../quadratic-rust-shared -name "grcov-*.profraw" -print) \
+            --branch \
+            --ignore-not-existing \
+            --binary-path ../target/debug/ \
+            -s . \
+            -t lcov \
+            --ignore "/*" \
+            --ignore "./src/wasm_bindings/*" \
+            --ignore "./src/bin/*" \
+            --ignore "./docker/*" \
+            -o lcov.info
+
+      - name: Upload coverage reports to Codecov quadratic-${{ matrix.package }}
+        if: always() && steps.test.outcome == 'success'
+        uses: codecov/codecov-action@v5
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  perf_core:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: useblacksmith/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: clippy, rustfmt, llvm-tools-preview
+
+      - name: Cache Protoc
+        id: cache-protoc
+        uses: useblacksmith/cache@v5
+        with:
+          path: ~/.local/protoc
+          key: protoc-25.0-linux-x86_64-v1
+
+      - name: Install Protoc
+        run: |
+          if [ -f "$HOME/.local/protoc/bin/protoc" ]; then
+            echo "Using cached protoc"
+          else
+            PROTOC_VERSION="25.0"
+            mkdir -p "$HOME/.local/protoc"
+            for i in {1..5}; do
+              curl -fsSL -o protoc.zip \
+                "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip" && break
+              echo "Attempt $i failed, retrying in 10s..."
+              sleep 10
+            done
+            unzip -o protoc.zip -d "$HOME/.local/protoc"
+            rm protoc.zip
+          fi
+          echo "$HOME/.local/protoc/bin" >> $GITHUB_PATH
+
+      - name: Verify Protoc
+        run: protoc --version
+
+      - name: Rust Cache
+        uses: useblacksmith/rust-cache@v3
+
+      - name: Install llvm-tools-preview
+        run: if ! which llvm-tools-preview; then rustup component add llvm-tools-preview; fi
+
+      - name: Bench quadratic-core
+        run: |
+          cd quadratic-core
+          npm run bench:run import_excel
+
+  test_client:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Cache Pyodide
+        uses: useblacksmith/cache@v5
+        with:
+          path: quadratic-client/public/pyodide
+          key: pyodide-${{ hashFiles('quadratic-client/download-pyodide.sh') }}
+
+      - name: Download & Verify Pyodide
+        run: |
+          npm run client:download:pyodide
+
+      - name: Install build-essential, llvm, and clang
+        run: |
+          for i in 1 2 3; do sudo apt-get update && break || sleep 5; done
+          sudo apt-get install -y --no-install-recommends build-essential llvm clang
+
+      - name: Setup Node
+        uses: useblacksmith/setup-node@v5
+        with:
+          node-version: 24
+
+      - uses: useblacksmith/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: "pip"
+
+      - name: Set up Rust
+        run: rustup toolchain install
+
+      - name: Cache Protoc
+        id: cache-protoc
+        uses: useblacksmith/cache@v5
+        with:
+          path: ~/.local/protoc
+          key: protoc-25.0-linux-x86_64-v1
+
+      - name: Install Protoc
+        run: |
+          if [ -f "$HOME/.local/protoc/bin/protoc" ]; then
+            echo "Using cached protoc"
+          else
+            PROTOC_VERSION="25.0"
+            mkdir -p "$HOME/.local/protoc"
+            for i in {1..5}; do
+              curl -fsSL -o protoc.zip \
+                "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip" && break
+              echo "Attempt $i failed, retrying in 10s..."
+              sleep 10
+            done
+            unzip -o protoc.zip -d "$HOME/.local/protoc"
+            rm protoc.zip
+          fi
+          echo "$HOME/.local/protoc/bin" >> $GITHUB_PATH
+
+      - name: Verify Protoc
+        run: protoc --version
+
+      - name: Rust Cache
+        uses: useblacksmith/rust-cache@v3
+
+      - uses: jetli/wasm-pack-action@v0.4.0
+        with:
+          version: "latest"
+
+      - name: Build core
+        run: |
+          npm run build:dev --workspace=quadratic-core &
+          BUILD_PID=$!
+          npm run export_types --workspace=quadratic-core &
+          TYPES_PID=$!
+          wait $BUILD_PID || exit 1
+          wait $TYPES_PID || exit 1
+
+      - name: Build python
+        run: |
+          npm run build:python
+
+      - name: Run npm test:ts in quadratic-client
+        run: |
+          npm install
+          npm run test:ts
+
+  test_python:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: useblacksmith/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Set up Python
+        uses: useblacksmith/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: "pip"
+
+      - name: Test python
+        run: |
+          cd quadratic-kernels/python-wasm
+          npm run test
+
+  test_api:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: useblacksmith/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Run npm test:ci in quadratic-api
+        run: |
+          npm install
+          cd quadratic-api
+          npm run docker:test:ci
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+
+  lint_rust:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: useblacksmith/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Set up Rust
+        run: rustup toolchain install
+
+      - name: Cache Protoc
+        id: cache-protoc
+        uses: useblacksmith/cache@v5
+        with:
+          path: ~/.local/protoc
+          key: protoc-25.0-linux-x86_64-v1
+
+      - name: Install Protoc
+        run: |
+          if [ -f "$HOME/.local/protoc/bin/protoc" ]; then
+            echo "Using cached protoc"
+          else
+            PROTOC_VERSION="25.0"
+            mkdir -p "$HOME/.local/protoc"
+            for i in {1..5}; do
+              curl -fsSL -o protoc.zip \
+                "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip" && break
+              echo "Attempt $i failed, retrying in 10s..."
+              sleep 10
+            done
+            unzip -o protoc.zip -d "$HOME/.local/protoc"
+            rm protoc.zip
+          fi
+          echo "$HOME/.local/protoc/bin" >> $GITHUB_PATH
+
+      - name: Verify Protoc
+        run: protoc --version
+
+      - name: Rust Cache
+        uses: useblacksmith/rust-cache@v3
+
+      - name: Run cargo clippy
+        run: |
+          npm run lint:clippy
+
+  lint_rust_renderer:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: useblacksmith/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Set up Rust
+        run: |
+          cd quadratic-rust-renderer
+          rustup toolchain install
+
+      - name: Cache Protoc
+        id: cache-protoc
+        uses: useblacksmith/cache@v5
+        with:
+          path: ~/.local/protoc
+          key: protoc-25.0-linux-x86_64-v1
+
+      - name: Install Protoc
+        run: |
+          if [ -f "$HOME/.local/protoc/bin/protoc" ]; then
+            echo "Using cached protoc"
+          else
+            PROTOC_VERSION="25.0"
+            mkdir -p "$HOME/.local/protoc"
+            for i in {1..5}; do
+              curl -fsSL -o protoc.zip \
+                "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip" && break
+              echo "Attempt $i failed, retrying in 10s..."
+              sleep 10
+            done
+            unzip -o protoc.zip -d "$HOME/.local/protoc"
+            rm protoc.zip
+          fi
+          echo "$HOME/.local/protoc/bin" >> $GITHUB_PATH
+
+      - name: Verify Protoc
+        run: protoc --version
+
+      - name: Rust Cache
+        uses: useblacksmith/rust-cache@v3
+        with:
+          workspaces: |
+            quadratic-rust-renderer/core
+            quadratic-rust-renderer/native
+
+      - name: Run cargo clippy on rust-renderer
+        run: |
+          cd quadratic-rust-renderer
+          npm run lint
+
+  test_rust_renderer:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: useblacksmith/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Set up Rust
+        run: |
+          cd quadratic-rust-renderer
+          rustup toolchain install
+
+      - name: Cache Protoc
+        id: cache-protoc
+        uses: useblacksmith/cache@v5
+        with:
+          path: ~/.local/protoc
+          key: protoc-25.0-linux-x86_64-v1
+
+      - name: Install Protoc
+        run: |
+          if [ -f "$HOME/.local/protoc/bin/protoc" ]; then
+            echo "Using cached protoc"
+          else
+            PROTOC_VERSION="25.0"
+            mkdir -p "$HOME/.local/protoc"
+            for i in {1..5}; do
+              curl -fsSL -o protoc.zip \
+                "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip" && break
+              echo "Attempt $i failed, retrying in 10s..."
+              sleep 10
+            done
+            unzip -o protoc.zip -d "$HOME/.local/protoc"
+            rm protoc.zip
+          fi
+          echo "$HOME/.local/protoc/bin" >> $GITHUB_PATH
+
+      - name: Verify Protoc
+        run: protoc --version
+
+      - name: Rust Cache
+        uses: useblacksmith/rust-cache@v3
+        with:
+          workspaces: |
+            quadratic-rust-renderer/core
+            quadratic-rust-renderer/native
+
+      - name: Run cargo test on rust-renderer
+        run: |
+          cd quadratic-rust-renderer
+          npm run test
+
+  lint_typescript:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install build-essential, llvm, and clang
+        run: |
+          for i in 1 2 3; do sudo apt-get update && break || sleep 5; done
+          sudo apt-get install -y --no-install-recommends build-essential llvm clang
+
+      - name: Setup Node
+        uses: useblacksmith/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Set up Rust
+        run: rustup toolchain install
+
+      - name: Cache Protoc
+        id: cache-protoc
+        uses: useblacksmith/cache@v5
+        with:
+          path: ~/.local/protoc
+          key: protoc-25.0-linux-x86_64-v1
+
+      - name: Install Protoc
+        run: |
+          if [ -f "$HOME/.local/protoc/bin/protoc" ]; then
+            echo "Using cached protoc"
+          else
+            PROTOC_VERSION="25.0"
+            mkdir -p "$HOME/.local/protoc"
+            for i in {1..5}; do
+              curl -fsSL -o protoc.zip \
+                "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip" && break
+              echo "Attempt $i failed, retrying in 10s..."
+              sleep 10
+            done
+            unzip -o protoc.zip -d "$HOME/.local/protoc"
+            rm protoc.zip
+          fi
+          echo "$HOME/.local/protoc/bin" >> $GITHUB_PATH
+
+      - name: Verify Protoc
+        run: protoc --version
+
+      - name: Rust Cache
+        uses: useblacksmith/rust-cache@v3
+
+      - name: Set up wasm-pack
+        uses: jetli/wasm-pack-action@v0.4.0
+        with:
+          version: "latest"
+
+      - name: Build core
+        run: |
+          npm run build:dev --workspace=quadratic-core &
+          BUILD_PID=$!
+          npm run export_types --workspace=quadratic-core &
+          TYPES_PID=$!
+          wait $BUILD_PID || exit 1
+          wait $TYPES_PID || exit 1
+
+      - name: Lint quadratic-client
+        run: |
+          npm install
+          cd quadratic-client
+          npm run lint:prettier
+          npm run lint:eslint
+          npm run lint:ts
+
+  check-version-increment:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 10
+    # If we are merging into main, but not pushed on main
+    if: github.base_ref == 'main' && github.ref != 'refs/heads/main'
+    steps:
+      - name: Checkout current branch
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get current VERSION
+        id: current_version
+        run: echo "CURRENT_VERSION=$(cat VERSION)" >> $GITHUB_OUTPUT
+
+      - name: Checkout main branch
+        uses: actions/checkout@v3
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Get main VERSION
+        id: main_version
+        run: echo "MAIN_VERSION=$(cat VERSION)" >> $GITHUB_OUTPUT
+
+      - name: Compare versions to main, verify this version is higher
+        run: |
+          current_version="${{ steps.current_version.outputs.CURRENT_VERSION }}"
+          main_version="${{ steps.main_version.outputs.MAIN_VERSION }}"
+          if [ "$current_version" = "$main_version" ]; then
+            echo "Error: VERSION in the current branch ($current_version) is the same as VERSION in main ($main_version)"
+            exit 1
+          elif [ "$(printf '%s\n' "$main_version" "$current_version" | sort -V | head -n1)" != "$main_version" ]; then
+            echo "Error: VERSION in the current branch ($current_version) is not greater than VERSION in main ($main_version)"
+            exit 1
+          else
+            echo "VERSION check passed: Current branch ($current_version) > main ($main_version)"
+          fi
+
+  check-versions-match:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout current branch
+        uses: actions/checkout@v3
+
+      - name: Verify that all versions match
+        run: ./bump.sh verify
